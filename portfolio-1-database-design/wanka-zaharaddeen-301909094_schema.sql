@@ -65,3 +65,24 @@ CREATE TABLE contribution_payments(
     CONSTRAINT chk_pos_payment CHECK (amount_paid > 0),
     CONSTRAINT chk_payment_status CHECK (payment_status IN ('Successful', 'Failed', 'Pending', 'Reversed'))
 )
+
+-- TABLE 4: COMPLIANCE CERTIFICATE
+CREATE TABLE compliance_certificates(
+    certificate_id VARCHAR(30) PRIMARY KEY,
+    ecs_number VARCHAR(10) NOT NULL,
+    issue_date DATE,
+    expiration_date DATE,
+    certificate_fee DECIMAL(10,2) NOT NULL DEFAULT 30000.00,
+    certificate_status VARCHAR(20) NOT NULL DEFAULT 'Not Requested',
+    CONSTRAINT fk_cert_employer FOREIGN KEY (ecs_number)
+        REFERENCES employers(ecs_number) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT chk_cert_date CHECK (expiration_date IS NULL OR issue_date IS NULL OR expiration_date > issue_date),
+    CONSTRAINT chk_cert_status CHECK (certificate_status IN ('Issued', 'Processing', 'Expired', 'Revoked', 'Not Requested')),
+)
+
+-- PERFORMANCE INDEXES
+CREATE INDEX idx_employers_state_zone ON employers(state_zone)
+CREATE INDEX idx_employers_status ON employers(employer_status)
+CREATE INDEX idx_payrolls_ecs_period ON monthly_payrolls(ecs_number, assessment_year, assessment_month)
+CREATE INDEX idx_payments_ecs_date ON contribution_payments(ecs_number, payment_date)
+CREATE INDEX idx_certificates_ecs_status ON compliance_certificates(ecs_number, certificate_status)
