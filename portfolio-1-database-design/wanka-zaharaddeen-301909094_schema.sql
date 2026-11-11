@@ -26,7 +26,7 @@ CREATE TABLE employers (
     employer_status VARCHAR(20) NOT NULL DEFAULT 'Compliant',
     CONSTRAINT chk_employer_status CHECK (employer_status IN ('Compliant', 'Defaulting', 'Recalcitrant', 'Closed')),
     CONSTRAINT chk_registration_fee_status CHECK (registration_fee_status IN ('Unpaid', 'Paid'))
-);
+)
 
 -- TABLE 2: MONTHLY PAYROLLS
 CREATE TABLE monthly_payrolls (
@@ -46,4 +46,22 @@ CREATE TABLE monthly_payrolls (
         assessment_year > 2011 OR (assessment_year = 2011 AND assessment_month >= 7)),
     CONSTRAINT chk_pos_emolument CHECK (total_gross_emolument >= 0),
     CONSTRAINT uq_emp_month_year UNIQUE (ecs_number, assessment_year, assessment_month)
-);
+)
+
+-- TABLE 3: CONTRIBUTION PAYMENTS
+CREATE TABLE contribution_payments(
+    payment_id VARCHAR(20) PRIMARY KEY,
+    ecs_number VARCHAR(10) NOT NULL,
+    payroll_id INT NOT NULL,
+    payment_reference VARCHAR(50) NOT NULL UNIQUE,
+    amount_paid DECIMAL(14,2) NOT NULL,
+    payment_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    payment_channel VARCHAR(40) NOT NULL,
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    CONSTRAINT fk_payment_employer FOREIGN KEY (ecs_number)
+        REFERENCES employers(ecs_number) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_payment_payroll FOREIGN KEY (payroll_id)
+        REFERENCES monthly_payrolls(payment_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT chk_pos_payment CHECK (amount_paid > 0),
+    CONSTRAINT chk_payment_status CHECK (payment_status IN ('Successful', 'Failed', 'Pending', 'Reversed'))
+)
