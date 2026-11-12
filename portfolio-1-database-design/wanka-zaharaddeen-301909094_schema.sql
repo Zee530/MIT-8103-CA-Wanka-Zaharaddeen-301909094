@@ -14,7 +14,7 @@ CREATE TABLE employers (
     ecs_number VARCHAR(10) PRIMARY KEY,
     company_name VARCHAR(150) NOT NULL,
     rc_number VARCHAR(20) NOT NULL UNIQUE,
-    sector VARCHAR(80) NOT NULL,
+    business_sector VARCHAR(80) NOT NULL,
     company_address TEXT NOT NULL,
     state_zone VARCHAR(50) NOT NULL,
     contact_person VARCHAR(100) NOT NULL,
@@ -45,6 +45,7 @@ CREATE TABLE monthly_payrolls (
     CONSTRAINT chk_ecs_inception_date CHECK (
         assessment_year > 2011 OR (assessment_year = 2011 AND assessment_month >= 7)),
     CONSTRAINT chk_pos_emolument CHECK (total_gross_emolument >= 0),
+    CONSTRAINT chk_assessment_fee_calc CHECK (assessment_fee = ROUND(total_gross_emolument * 0.01, 2)),
     CONSTRAINT uq_emp_month_year UNIQUE (ecs_number, assessment_year, assessment_month)
 )
 
