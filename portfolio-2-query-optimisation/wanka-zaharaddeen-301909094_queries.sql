@@ -38,3 +38,18 @@ SELECT
         ELSE 'Compliant'
     END
 FROM generate_series(1,30) AS g;
+
+
+-- Insert 90 entries in to Monthly Payrolls (3 months per employer)
+INSERT INTO monthly_payrolls(
+    ecs_number, assessment_year, assessment_month, employee_count, total_gross_emolument, assessment_fee
+)
+SELECT 
+    e.ecs_number,
+    2025,
+    m.month_num,
+    10 + (RIGHT(e.ecs_number,2)::int % 30),
+    (10 + (RIGHT(e.ecs_number,2)::int % 30)) * 100000.00,
+    ROUND(((10 + (RIGHT(e.ecs_number,2)::int % 30)) * 100000.00)* 0.01,2)
+FROM employers e 
+CROSS JOIN generate_series(1,3) AS m(month_num)
