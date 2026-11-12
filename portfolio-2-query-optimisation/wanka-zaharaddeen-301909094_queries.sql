@@ -70,3 +70,59 @@ SELECT
     CASE WHEN p.payroll_id % 10 = 0 THEN 'Failed' ELSE 'Successful' END
 FROM monthly_payrolls p 
 WHERE p.payroll_id < 100060; -- first 60 entries paying
+
+
+-- QUERY OPTIMIZATION
+
+-- DROP SECONDARY INDEXES
+DROP INDEX IF EXISTS idx_employers_state_zone;
+DROP INDEX IF EXISTS idx_employers_status;
+DROP INDEX IF EXISTS idx_payrolls_ecs_period;
+DROP INDEX IF EXISTS idx_payments_ecs_date;
+DROP INDEX IF EXISTS idx_certificates_ecs_status;
+DROP INDEX IF EXISTS idx_opt_emp_zone_status;
+DROP INDEX IF EXISTS idx_opt_payroll_ecs_year;
+DROP INDEX IF EXISTS idx_opt_payment_payroll_status;
+
+ANALYZE;
+
+-- [QUERY UNOPTIMIZED] Total 2025 Assessment Fees by State Zone for Compliant Employers
+SELECT
+    e.state_zone,
+    COUNT(DISTINCT e.ecs_number) AS compliant_employer,
+    SUM(p.assessment_fee) AS total_assessment_fee
+FROM employers e 
+JOIN monthly_payrolls p ON e.ecs_number = p.ecs_number
+WHERE e.employer_status = 'Compliant'
+AND p.assessment_year = 2025
+GROUP BY e.state_zone
+ORDER BY total_assessment_fee DESC
+
+EXPLAIN ANALYZE
+SELECT
+    e.state_zone,
+    COUNT(DISTINCT e.ecs_number) AS compliant_employer,
+    SUM(p.assessment_fee) AS total_assessment_fee
+FROM employers e 
+JOIN monthly_payrolls p ON e.ecs_number = p.ecs_number
+WHERE e.employer_status = 'Compliant'
+AND p.assessment_year = 2025
+GROUP BY e.state_zone
+ORDER BY total_assessment_fee DESC
+
+
+-- [QUERY OPTIMIZED] Total 2025 Assessment Fees by State Zone for Compliant Employers with INDEXES
+CREATE INDEX idx_opt_emp_zone_status ON employers(state_zone, employer_status);
+CREATE INDEX idx_opt_payroll_ecs_year ON monthly_payrolls(ecs_number, assessment_year);
+
+EXPLAIN ANALYZE
+SELECT
+    e.state_zone,
+    COUNT(DISTINCT e.ecs_number) AS compliant_employer,
+    SUM(p.assessment_fee) AS total_assessment_fee
+FROM employers e 
+JOIN monthly_payrolls p ON e.ecs_number = p.ecs_number
+WHERE e.employer_status = 'Compliant'
+AND p.assessment_year = 2025
+GROUP BY e.state_zone
+ORDER BY total_assessment_fee DESC
