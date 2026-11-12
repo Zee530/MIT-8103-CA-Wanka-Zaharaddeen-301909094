@@ -1,0 +1,68 @@
+TRUNCATE TABLE
+INSERT 0 30
+INSERT 0 90
+INSERT 0 60
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+ANALYZE
+ state_zone | compliant_employer | total_assessment_fee 
+------------+--------------------+----------------------
+ FCT, Abuja |                  8 |            630000.00
+ Kano       |                  8 |            600000.00
+ Lagos      |                  8 |            570000.00
+(3 rows)
+
+                                                              QUERY PLAN                                                               
+---------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=7.07..7.08 rows=3 width=47) (actual time=0.121..0.122 rows=3 loops=1)
+   Sort Key: (sum(p.assessment_fee)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  GroupAggregate  (cost=6.29..7.05 rows=3 width=47) (actual time=0.104..0.115 rows=3 loops=1)
+         Group Key: e.state_zone
+         ->  Sort  (cost=6.29..6.47 rows=72 width=24) (actual time=0.093..0.097 rows=72 loops=1)
+               Sort Key: e.state_zone, e.ecs_number
+               Sort Method: quicksort  Memory: 28kB
+               ->  Hash Join  (cost=1.68..4.07 rows=72 width=24) (actual time=0.019..0.039 rows=72 loops=1)
+                     Hash Cond: ((p.ecs_number)::text = (e.ecs_number)::text)
+                     ->  Seq Scan on monthly_payrolls p  (cost=0.00..2.12 rows=90 width=17) (actual time=0.004..0.010 rows=90 loops=1)
+                           Filter: (assessment_year = 2025)
+                     ->  Hash  (cost=1.38..1.38 rows=24 width=18) (actual time=0.012..0.012 rows=24 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                           ->  Seq Scan on employers e  (cost=0.00..1.38 rows=24 width=18) (actual time=0.002..0.007 rows=24 loops=1)
+                                 Filter: ((employer_status)::text = 'Compliant'::text)
+                                 Rows Removed by Filter: 6
+ Planning Time: 0.130 ms
+ Execution Time: 0.144 ms
+(19 rows)
+
+CREATE INDEX
+CREATE INDEX
+                                                              QUERY PLAN                                                               
+---------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=7.07..7.08 rows=3 width=47) (actual time=0.104..0.105 rows=3 loops=1)
+   Sort Key: (sum(p.assessment_fee)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  GroupAggregate  (cost=6.29..7.05 rows=3 width=47) (actual time=0.087..0.098 rows=3 loops=1)
+         Group Key: e.state_zone
+         ->  Sort  (cost=6.29..6.47 rows=72 width=24) (actual time=0.076..0.080 rows=72 loops=1)
+               Sort Key: e.state_zone, e.ecs_number
+               Sort Method: quicksort  Memory: 28kB
+               ->  Hash Join  (cost=1.68..4.07 rows=72 width=24) (actual time=0.023..0.043 rows=72 loops=1)
+                     Hash Cond: ((p.ecs_number)::text = (e.ecs_number)::text)
+                     ->  Seq Scan on monthly_payrolls p  (cost=0.00..2.12 rows=90 width=17) (actual time=0.006..0.012 rows=90 loops=1)
+                           Filter: (assessment_year = 2025)
+                     ->  Hash  (cost=1.38..1.38 rows=24 width=18) (actual time=0.013..0.013 rows=24 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                           ->  Seq Scan on employers e  (cost=0.00..1.38 rows=24 width=18) (actual time=0.003..0.007 rows=24 loops=1)
+                                 Filter: ((employer_status)::text = 'Compliant'::text)
+                                 Rows Removed by Filter: 6
+ Planning Time: 0.282 ms
+ Execution Time: 0.129 ms
+(19 rows)
+

@@ -31,7 +31,7 @@ SELECT
     '0803000' || LPAD(g::text, 4,'1'),
     DATE '2021-01-10' + (g * INTERVAL '15 days'),
     20000.00,
-    CASE g % 5 = 0 THEN 'Unpaid' ELSE 'Paid',
+    CASE WHEN g % 5 = 0 THEN 'Unpaid' ELSE 'Paid' END,
     CASE 
         WHEN g % 10 = 0 THEN 'Recalcitrant'
         WHEN g % 5 = 0 THEN 'Defaulting'
@@ -52,7 +52,7 @@ SELECT
     (10 + (RIGHT(e.ecs_number,2)::int % 30)) * 100000.00,
     ROUND(((10 + (RIGHT(e.ecs_number,2)::int % 30)) * 100000.00)* 0.01,2)
 FROM employers e 
-CROSS JOIN generate_series(1,3) AS m(month_num)
+CROSS JOIN generate_series(1,3) AS m(month_num);
 
 
 -- Insert 60 entries into Contribution Payments (60 Paying, 30 owing)
@@ -65,7 +65,7 @@ SELECT
     p.payroll_id,
     'RRR-' || (20000 + p.payroll_id),
     p.assessment_fee,
-    DATE '2025-01-25' ((p.assessment_month - 1) * INTERVAL '1 month'),
+    DATE '2025-01-25' + ((p.assessment_month - 1) * INTERVAL '1 month'),
     CASE WHEN p.payroll_id % 2 = 0 THEN 'Remita' ELSE 'NIBSS' END,
     CASE WHEN p.payroll_id % 10 = 0 THEN 'Failed' ELSE 'Successful' END
 FROM monthly_payrolls p 
@@ -96,7 +96,7 @@ JOIN monthly_payrolls p ON e.ecs_number = p.ecs_number
 WHERE e.employer_status = 'Compliant'
 AND p.assessment_year = 2025
 GROUP BY e.state_zone
-ORDER BY total_assessment_fee DESC
+ORDER BY total_assessment_fee DESC;
 
 EXPLAIN ANALYZE
 SELECT
@@ -108,7 +108,7 @@ JOIN monthly_payrolls p ON e.ecs_number = p.ecs_number
 WHERE e.employer_status = 'Compliant'
 AND p.assessment_year = 2025
 GROUP BY e.state_zone
-ORDER BY total_assessment_fee DESC
+ORDER BY total_assessment_fee DESC;
 
 
 -- [QUERY OPTIMIZED] Total 2025 Assessment Fees by State Zone for Compliant Employers with INDEXES
@@ -125,4 +125,4 @@ JOIN monthly_payrolls p ON e.ecs_number = p.ecs_number
 WHERE e.employer_status = 'Compliant'
 AND p.assessment_year = 2025
 GROUP BY e.state_zone
-ORDER BY total_assessment_fee DESC
+ORDER BY total_assessment_fee DESC;
