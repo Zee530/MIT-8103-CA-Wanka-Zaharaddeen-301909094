@@ -26,7 +26,7 @@ CREATE TABLE employers (
     employer_status VARCHAR(20) NOT NULL DEFAULT 'Compliant',
     CONSTRAINT chk_employer_status CHECK (employer_status IN ('Compliant', 'Defaulting', 'Recalcitrant', 'Closed')),
     CONSTRAINT chk_registration_fee_status CHECK (registration_fee_status IN ('Unpaid', 'Paid'))
-)
+);
 
 -- TABLE 2: MONTHLY PAYROLLS
 CREATE TABLE monthly_payrolls (
@@ -47,7 +47,7 @@ CREATE TABLE monthly_payrolls (
     CONSTRAINT chk_pos_emolument CHECK (total_gross_emolument >= 0),
     CONSTRAINT chk_assessment_fee_calc CHECK (assessment_fee = ROUND(total_gross_emolument * 0.01, 2)),
     CONSTRAINT uq_emp_month_year UNIQUE (ecs_number, assessment_year, assessment_month)
-)
+);
 
 -- TABLE 3: CONTRIBUTION PAYMENTS
 CREATE TABLE contribution_payments(
@@ -62,10 +62,10 @@ CREATE TABLE contribution_payments(
     CONSTRAINT fk_payment_employer FOREIGN KEY (ecs_number)
         REFERENCES employers(ecs_number) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_payment_payroll FOREIGN KEY (payroll_id)
-        REFERENCES monthly_payrolls(payment_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        REFERENCES monthly_payrolls(payroll_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT chk_pos_payment CHECK (amount_paid > 0),
     CONSTRAINT chk_payment_status CHECK (payment_status IN ('Successful', 'Failed', 'Pending', 'Reversed'))
-)
+);
 
 -- TABLE 4: COMPLIANCE CERTIFICATE
 CREATE TABLE compliance_certificates(
@@ -78,12 +78,12 @@ CREATE TABLE compliance_certificates(
     CONSTRAINT fk_cert_employer FOREIGN KEY (ecs_number)
         REFERENCES employers(ecs_number) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT chk_cert_date CHECK (expiration_date IS NULL OR issue_date IS NULL OR expiration_date > issue_date),
-    CONSTRAINT chk_cert_status CHECK (certificate_status IN ('Issued', 'Processing', 'Expired', 'Revoked', 'Not Requested')),
-)
+    CONSTRAINT chk_cert_status CHECK (certificate_status IN ('Issued', 'Processing', 'Expired', 'Revoked', 'Not Requested'))
+);
 
 -- PERFORMANCE INDEXES
-CREATE INDEX idx_employers_state_zone ON employers(state_zone)
-CREATE INDEX idx_employers_status ON employers(employer_status)
-CREATE INDEX idx_payrolls_ecs_period ON monthly_payrolls(ecs_number, assessment_year, assessment_month)
-CREATE INDEX idx_payments_ecs_date ON contribution_payments(ecs_number, payment_date)
-CREATE INDEX idx_certificates_ecs_status ON compliance_certificates(ecs_number, certificate_status)
+CREATE INDEX idx_employers_state_zone ON employers(state_zone);
+CREATE INDEX idx_employers_status ON employers(employer_status);
+CREATE INDEX idx_payrolls_ecs_period ON monthly_payrolls(ecs_number, assessment_year, assessment_month);
+CREATE INDEX idx_payments_ecs_date ON contribution_payments(ecs_number, payment_date);
+CREATE INDEX idx_certificates_ecs_status ON compliance_certificates(ecs_number, certificate_status);
