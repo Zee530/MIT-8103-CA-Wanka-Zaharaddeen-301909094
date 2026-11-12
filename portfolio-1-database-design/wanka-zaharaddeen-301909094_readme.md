@@ -26,16 +26,16 @@ NSITF is mandated to pool a statutory contribution equal to **1% of total monthl
 ### 2.1 Unnormalized Form (UNF)
 In a flat, unnormalized register, employer details and repeating monthly records are stored within a single compound structure:
 
-`NSITF_Unnormalized_Record (ecs_number, company_name, rc_number, business_sector, office_address, state_zone, contact_person, contact_email, contact_phone, registration_date, registration_fee, registration_fee_status, employer_status, monthly_payrolls[payroll_id, assessment_year, assessment_month, employee_count, total_gross_emolument, assessment_fee, submission_date], contribution_payments[payment_id, payment_reference, amount_paid, payment_date, payment_channel, payment_status], compliance_certificates[certificate_id, issue_date, expiry_date, certificate_fee, compliance_status])`
+`NSITF_Unnormalized_Record (ecs_number, company_name, rc_number, business_sector, company_address, state_zone, contact_person, contact_email, contact_phone, registration_date, registration_fee, registration_fee_status, employer_status, monthly_payrolls[payroll_id, assessment_year, assessment_month, employee_count, total_gross_emolument, assessment_fee, submission_date], contribution_payments[payment_id, payment_reference, amount_paid, payment_date, payment_channel, payment_status], compliance_certificates[certificate_id, issue_date, expiry_date, certificate_fee, compliance_status])`
 
 ### 2.2 First Normal Form (1NF)
 Removed all repeating groups so every attribute holds an atomic value, uniquely identified by a composite key (`ecs_number`, `payroll_id`, `payment_id`, `certificate_id`):
 
-`NSITF_1NF (ecs_number, company_name, rc_number, business_sector, office_address, state_zone, contact_person, contact_email, contact_phone, registration_date, registration_fee, registration_fee_status, employer_status, payroll_id, assessment_year, assessment_month, employee_count, total_gross_emolument, assessment_fee, submission_date, payment_id, payment_reference, amount_paid, payment_date, payment_channel, payment_status, certificate_id, issue_date, expiry_date, certificate_fee, compliance_status)`
+`NSITF_1NF (ecs_number, company_name, rc_number, business_sector, company_address, state_zone, contact_person, contact_email, contact_phone, registration_date, registration_fee, registration_fee_status, employer_status, payroll_id, assessment_year, assessment_month, employee_count, total_gross_emolument, assessment_fee, submission_date, payment_id, payment_reference, amount_paid, payment_date, payment_channel, payment_status, certificate_id, issue_date, expiry_date, certificate_fee, compliance_status)`
 
 ### 2.3 Second Normal Form (2NF)
 Eliminated partial functional dependencies by decomposing attributes into four distinct tables where every non-key column depends on the entire primary key of its table:
-1. `employers` (`ecs_number` [PK], company_name, rc_number, business_sector, office_address, state_zone, contact_person, contact_email, contact_phone, registration_date, registration_fee, registration_fee_status, employer_status)
+1. `employers` (`ecs_number` [PK], company_name, rc_number, business_sector, company_address, state_zone, contact_person, contact_email, contact_phone, registration_date, registration_fee, registration_fee_status, employer_status)
 2. `monthly_payrolls` (`payroll_id` [PK], `ecs_number` [FK], assessment_year, assessment_month, employee_count, total_gross_emolument, assessment_fee, submission_date)
 3. `contribution_payments` (`payment_id` [PK], `ecs_number` [FK], `payroll_id` [FK], payment_reference, amount_paid, payment_date, payment_channel, payment_status)
 4. `compliance_certificates` (`certificate_id` [PK], `ecs_number` [FK], issue_date, expiry_date, certificate_fee, compliance_status)
@@ -56,7 +56,7 @@ Eliminated transitive dependencies so non-key columns depend exclusively on thei
 | `company_name` | `VARCHAR(150)` | `NOT NULL` | Registered corporate name |
 | `rc_number` | `VARCHAR(20)` | `NOT NULL`, `UNIQUE` | Corporate Affairs Commission (CAC) registration number |
 | `business_sector` | `VARCHAR(80)` | `NOT NULL` | Economic/industry sector of operation |
-| `office_address` | `TEXT` | `NOT NULL` | Physical business address |
+| `company_address` | `TEXT` | `NOT NULL` | Physical business address |
 | `state_zone` | `VARCHAR(50)` | `NOT NULL` | Regional branch/zone (e.g., Kano, Lagos, Abuja HQ) |
 | `contact_person` | `VARCHAR(100)` | `NOT NULL` | Designated compliance liaison officer |
 | `contact_email` | `VARCHAR(100)` | `NOT NULL`, `UNIQUE` | Official email address |
