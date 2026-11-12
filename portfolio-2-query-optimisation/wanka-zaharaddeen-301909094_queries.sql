@@ -53,3 +53,20 @@ SELECT
     ROUND(((10 + (RIGHT(e.ecs_number,2)::int % 30)) * 100000.00)* 0.01,2)
 FROM employers e 
 CROSS JOIN generate_series(1,3) AS m(month_num)
+
+
+-- Insert 60 entries into Contribution Payments (60 Paying, 30 owing)
+INSERT INTO contribution_payments(
+    payment_id, ecs_number, payroll_id, payment_reference, amount_paid, payment_date, payment_channel, payment_status
+)
+SELECT
+    'PAY-2025-' || p.payroll_id,
+    p.ecs_number,
+    p.payroll_id,
+    'RRR-' || (20000 + p.payroll_id),
+    p.assessment_fee,
+    DATE '2025-01-25' ((p.assessment_month - 1) * INTERVAL '1 month'),
+    CASE WHEN p.payroll_id % 2 = 0 THEN 'Remita' ELSE 'NIBSS' END,
+    CASE WHEN p.payroll_id % 10 = 0 THEN 'Failed' ELSE 'Successful' END
+FROM monthly_payrolls p 
+WHERE p.payroll_id < 100060; -- first 60 entries paying
