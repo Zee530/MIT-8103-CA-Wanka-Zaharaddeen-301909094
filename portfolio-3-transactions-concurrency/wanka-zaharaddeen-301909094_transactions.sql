@@ -3,10 +3,8 @@
 -- Student Name: Wanka Zaharaddeen Babayo
 -- Student ID: 301909094
 
--- PART 1: ATOMIC ROLLBACK
--- We will register one employer into the employers table with status defaulting and input their payroll.
--- We then simulate an app level error by using a BEGIN command and within it add a payment and update their status from 
--- defaulting to complying,we then use a ROLLBACK to cancel the transaction, then check the database to confirm this
+-- PART 1: ISOLATION
+-- We will register one employer into the employers table with status defaulting and an unpaid payroll.
 
 -- Clean employer if present in tables
 DELETE FROM compliance_certificates WHERE certificate_id LIKE 'CERT-P3-%';
@@ -39,7 +37,11 @@ SELECT ecs_number, company_name, employer_status
 FROM employers
 WHERE ecs_number = '1000000099';
 
--- Begin rollback test
+
+-- PART 2: ATOMIC ROLLBACK
+-- We will simulate an app level error by using a BEGIN command and within it add a payment for the previous registered 
+-- employer and update their status from defaulting to complying, we then use a ROLLBACK to cancel the transaction, 
+-- then check the database to confirm this
 BEGIN;
 
 -- Add Contribution
@@ -69,7 +71,7 @@ FROM contribution_payments
 WHERE payment_id = 'PAY-P3-001';
 
 
--- PART 2: ACID COMMIT
+-- PART 3: ACID COMMIT
 -- Demonstrate that adding Employer, their payroll, inserting payment, changing status to compliant and issuing certificate
 -- function as atomically
 
@@ -104,3 +106,22 @@ FROM employers e
 JOIN contribution_payments cp ON e.ecs_number = cp.ecs_number
 JOIN compliance_certificates cc ON e.ecs_number = cc.ecs_number
 WHERE e.ecs_number = '1000000099';
+
+
+-- PART 4: CONCURRENCY CONTROL
+-- Using ISOLATION LEVEL SERIALIZABLE we acquire a row lock so in the event of simultaneous edits, ours is processed first and
+-- in the event of a conflict, the other party receives a serialization failure error
+BEGIN ISOLATION LEVEL SERIALIZABLE;
+
+-- Acquire a row-level lock
+SELECT ecs_number, employer_status
+FROM employers
+WHERE ecs_number = '1000000099'
+FOR UPDATE;
+
+-- Update while holding row lock
+UPDATE employers
+SET company_address = 'Plot 99 Ahmadu Bello Way, Phase II, Bauchi'
+WHERE ecs_number = '1000000099';
+
+COMMIT;
