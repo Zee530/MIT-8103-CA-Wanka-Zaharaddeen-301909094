@@ -1,0 +1,123 @@
+DELETE FROM compliance_certificates WHERE certificate_id LIKE 'CERT-P3-%';
+DELETE 1
+DELETE FROM contribution_payments WHERE payment_id LIKE 'PAY-P3-%';
+DELETE 1
+DELETE FROM monthly_payrolls WHERE ecs_number = '1000000099';
+DELETE 1
+DELETE FROM employers WHERE ecs_number = '1000000099';
+DELETE 1
+INSERT INTO employers (
+    ecs_number, company_name, rc_number, business_sector, company_address,
+    state_zone, contact_person, contact_email, contact_phone,
+    registration_date, registration_fee, registration_fee_status, employer_status
+) VALUES (
+    '1000000099', 'Bauchi Savanna Logistics Ltd', 'RC-990099', 'Logistics',
+    'Plot 99 Ahmadu Bello Way, Bauchi', 'Bauchi', 'Ibrahim Musa',
+    'compliance@bauchisavanna.ng', '08039990099',
+    DATE '2022-05-10', 20000.00, 'Paid', 'Defaulting'
+);
+INSERT 0 1
+INSERT INTO monthly_payrolls (
+    payroll_id, ecs_number, assessment_year, assessment_month,
+    employee_count, total_gross_emolument, assessment_fee
+) VALUES (
+    100999, '1000000099', 2025, 11, 20, 3000000.00, 30000.00
+);
+INSERT 0 1
+SELECT ecs_number, company_name, employer_status
+FROM employers
+WHERE ecs_number = '1000000099';
+ ecs_number |         company_name         | employer_status 
+------------+------------------------------+-----------------
+ 1000000099 | Bauchi Savanna Logistics Ltd | Defaulting
+(1 row)
+
+BEGIN;
+BEGIN
+INSERT INTO contribution_payments (
+    payment_id, ecs_number, payroll_id, payment_reference,
+    amount_paid, payment_channel, payment_status
+) VALUES (
+    'PAY-P3-001', '1000000099', 100999, 'RRR-999000111',
+    30000.00, 'Remita', 'Successful'
+);
+INSERT 0 1
+UPDATE employers
+SET employer_status = 'Compliant'
+WHERE ecs_number = '1000000099';
+UPDATE 1
+ROLLBACK;
+ROLLBACK
+SELECT ecs_number, employer_status
+FROM employers
+WHERE ecs_number = '1000000099';
+ ecs_number | employer_status 
+------------+-----------------
+ 1000000099 | Defaulting
+(1 row)
+
+SELECT COUNT(*) AS aborted_payment_count
+FROM contribution_payments
+WHERE payment_id = 'PAY-P3-001';
+ aborted_payment_count 
+-----------------------
+                     0
+(1 row)
+
+BEGIN;
+BEGIN
+INSERT INTO contribution_payments (
+    payment_id, ecs_number, payroll_id, payment_reference,
+    amount_paid, payment_channel, payment_status
+) VALUES (
+    'PAY-P3-002', '1000000099', 100999, 'RRR-999000222',
+    30000.00, 'Remita', 'Successful'
+);
+INSERT 0 1
+UPDATE employers
+SET employer_status = 'Compliant'
+WHERE ecs_number = '1000000099';
+UPDATE 1
+INSERT INTO compliance_certificates (
+    certificate_id, ecs_number, issue_date, expiration_date, certificate_fee, certificate_status
+) VALUES (
+    'CERT-P3-2026-01', '1000000099', DATE '2026-01-10', DATE '2026-12-31', 30000.00, 'Issued'
+);
+INSERT 0 1
+COMMIT;
+COMMIT
+SELECT e.ecs_number, e.employer_status, cp.payment_id, cp.amount_paid, cc.certificate_id, cc.certificate_status
+FROM employers e
+JOIN contribution_payments cp ON e.ecs_number = cp.ecs_number
+JOIN compliance_certificates cc ON e.ecs_number = cc.ecs_number
+WHERE e.ecs_number = '1000000099';
+ ecs_number | employer_status | payment_id | amount_paid | certificate_id  | certificate_status 
+------------+-----------------+------------+-------------+-----------------+--------------------
+ 1000000099 | Compliant       | PAY-P3-002 |    30000.00 | CERT-P3-2026-01 | Issued
+(1 row)
+
+BEGIN ISOLATION LEVEL SERIALIZABLE;
+BEGIN
+SELECT ecs_number, employer_status
+FROM employers
+WHERE ecs_number = '1000000099'
+FOR UPDATE;
+ ecs_number | employer_status 
+------------+-----------------
+ 1000000099 | Compliant
+(1 row)
+
+UPDATE employers
+SET company_address = 'Plot 99 Ahmadu Bello Way, Phase II, Bauchi'
+WHERE ecs_number = '1000000099';
+UPDATE 1
+COMMIT;
+COMMIT
+SELECT ecs_number, company_name, company_address
+FROM employers
+WHERE ecs_number = '1000000099';
+ ecs_number |         company_name         |              company_address               
+------------+------------------------------+--------------------------------------------
+ 1000000099 | Bauchi Savanna Logistics Ltd | Plot 99 Ahmadu Bello Way, Phase II, Bauchi
+(1 row)
+

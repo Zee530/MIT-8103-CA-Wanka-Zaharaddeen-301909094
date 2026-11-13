@@ -93,7 +93,7 @@ WHERE ecs_number = '1000000099';
 
 -- Issue Certificate
 INSERT INTO compliance_certificates (
-    certificate_id, ecs_number, issue_date, expiry_date, certificate_fee, compliance_status
+    certificate_id, ecs_number, issue_date, expiration_date, certificate_fee, certificate_status
 ) VALUES (
     'CERT-P3-2026-01', '1000000099', DATE '2026-01-10', DATE '2026-12-31', 30000.00, 'Issued'
 );
@@ -101,7 +101,7 @@ INSERT INTO compliance_certificates (
 COMMIT;
 
 -- Verify changes persist
-SELECT e.ecs_number, e.employer_status, cp.payment_id, cp.amount_paid, cc.certificate_id, cc.compliance_status
+SELECT e.ecs_number, e.employer_status, cp.payment_id, cp.amount_paid, cc.certificate_id, cc.certificate_status
 FROM employers e
 JOIN contribution_payments cp ON e.ecs_number = cp.ecs_number
 JOIN compliance_certificates cc ON e.ecs_number = cc.ecs_number
@@ -125,3 +125,8 @@ SET company_address = 'Plot 99 Ahmadu Bello Way, Phase II, Bauchi'
 WHERE ecs_number = '1000000099';
 
 COMMIT;
+
+-- Verify the locked address update persisted
+SELECT ecs_number, company_name, company_address
+FROM employers
+WHERE ecs_number = '1000000099';
