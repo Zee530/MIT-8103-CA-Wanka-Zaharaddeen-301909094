@@ -1,4 +1,4 @@
--- Portfolio 2: Transactions, Concurrency Control & Recovery
+-- Portfolio 3: Transactions, Concurrency Control & Recovery
 -- Case Study: Nigeria Social Insurance Trust Fund
 -- Student Name: Wanka Zaharaddeen Babayo
 -- Student ID: 301909094
