@@ -67,3 +67,40 @@ WHERE ecs_number = '1000000099';
 SELECT COUNT(*) AS aborted_payment_count
 FROM contribution_payments
 WHERE payment_id = 'PAY-P3-001';
+
+
+-- PART 2: ACID COMMIT
+-- Demonstrate that adding Employer, their payroll, inserting payment, changing status to compliant and issuing certificate
+-- function as atomically
+
+BEGIN;
+
+-- Insert payment
+INSERT INTO contribution_payments (
+    payment_id, ecs_number, payroll_id, payment_reference,
+    amount_paid, payment_channel, payment_status
+) VALUES (
+    'PAY-P3-002', '1000000099', 100999, 'RRR-999000222',
+    30000.00, 'Remita', 'Successful'
+);
+
+-- Update status to Complying
+UPDATE employers
+SET employer_status = 'Compliant'
+WHERE ecs_number = '1000000099';
+
+-- Issue Certificate
+INSERT INTO compliance_certificates (
+    certificate_id, ecs_number, issue_date, expiry_date, certificate_fee, compliance_status
+) VALUES (
+    'CERT-P3-2026-01', '1000000099', DATE '2026-01-10', DATE '2026-12-31', 30000.00, 'Issued'
+);
+
+COMMIT;
+
+-- Verify changes persist
+SELECT e.ecs_number, e.employer_status, cp.payment_id, cp.amount_paid, cc.certificate_id, cc.compliance_status
+FROM employers e
+JOIN contribution_payments cp ON e.ecs_number = cp.ecs_number
+JOIN compliance_certificates cc ON e.ecs_number = cc.ecs_number
+WHERE e.ecs_number = '1000000099';
